@@ -1,0 +1,4 @@
+https://www.electroschematics.com/11032/edge-triggered-555-monostable-multivibrator/
+http://www.ti.com/lit/an/sdla006a/sdla006a.pdf
+https://www.onsemi.com/pub/Collateral/MC74HC4538A-D.PDF
+https://www.st.com/content/ccc/resource/technical/document/datasheet/ec/36/19/a8/9a/dc/46/04/CD00000401.pdf/files/CD00000401.pdf/jcr:content/translations/en.CD00000401.pdf
