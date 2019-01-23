@@ -1,0 +1,8 @@
+
+Highlighted comment 
+Stephen White 
+2 hours ago
+
+Hi Jeff, I love what you are doing, fascinating stuff. 
+You can save 19 cycles in your NMI. Instead of saving the registers onto the stack you put them into predetermined zero page locations. This will save 8 cycles (as it removes the TYA, TXA, TAX and the TAY). I don't think your NMI uses the Y register any more so you can save an additional 6 cycles by not saving and restoring Y. The LDX #$01 inside your OutBufRead macro is redundant. Does it need to be a macro? If you hand expanded the code into the NMI code you would see that the BEQ rdone would jump to BEQ pend so remove the macro and  replace BEQ rdone with  BEQ pend then you can remove the LDX #$01 at the of the macro and the BEQ pend when the macro completes. Hard to explain, but just expand the macro into the place where it is called and you should see what I mean. This will save a further 5 cycles and your NMI will now be 19 cycles in total faster!
+Keep up the good work.? 
