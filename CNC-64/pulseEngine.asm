@@ -90,11 +90,10 @@ cfgEnd  rts
 PortBMask byte 0
 
 PulseEng
-        ;php                     ; (3) push status register to stack
         sta zpA                 ; (3) save A register to zero page
         stx zpX                 ; (3) save X register to zero page
         ;stY zpY                 ; (3) save X register to zero page (not using)
-                                ; (16 cycles total, saved 12)
+                                ; (6 cycles total)
 
         lda CIA2_TOD_ICR        ; clear interrupt, so it will fire again!
 
@@ -116,9 +115,8 @@ rdone
         ;ldy zpY                 ; (3) grab old Y val from zero page (not used)
         ldx zpX                 ; (3) grab old X val from zero page
         lda zpA                 ; (3) grab old A val from zero page
-        ;plp                     ; (4) pop status register off stack
         rti                     ; (6) all done
-                                ; (12 cycles total, saved 14)
+                                ; (12 cycles total)
 
 
 

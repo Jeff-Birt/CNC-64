@@ -56,7 +56,7 @@ defm    OutBufWrite
         inx                     ; (2) increment it one, again!
         stx outBufHead          ; (3) save incremented head pointer
 ;        ldx #$01                ; (2) so BNE/BEQ can be used
-;wdone                           ; (27 if a macro)
+;wdone                           ; (24 if a macro)
         endm
 
 
@@ -74,7 +74,7 @@ defm    OutBufRead
         inx                     ; (2) inc tail pointer, does not affect C
         stx outBufTail          ; (3) save inremented tail pointer
 ;        ldx #$01                ; (2) so BNE/BEQ can be used
-;rdone                           ; (22 if a macro)
+;rdone                           ; (20 if a macro)
         endm
 
 
@@ -101,7 +101,7 @@ mod     = $0A
                 ;   Mode 1 (X master) Astepbit = $01, Bstepbit = $04 (A=X, B-Y) 
                 ;   Mode 2 (Y master) Bstepbit = $01, Astepbit = $04 (A=Y, B=X)
                 ;   #rep#step, daLSBMSB, dbLSBMSB, frLSBMSB, acl, dir, mod
-cCodeBuf        byte $10, $FF, $FE, $01, $80, $00, $81, $FF, $00, $00, $01 ;(0,0)->(255,64)      $C209
+cCodeBuf        byte $01, $FF, $FE, $01, $80, $00, $81, $FF, $00, $00, $01 ;(0,0)->(255,64)      $C209
                 byte $10, $FF, $FE, $01, $80, $00, $81, $FF, $00, $02, $01 ;(255,64)->(510,128)  $C212
                 byte $01, $FF, $04, $00, $00, $00, $FE, $FF, $00, $00, $00 ;(510,128)->(512,128) $C21B
 ;cCodeBufEnd     byte $FF        ; if we get to here we are done with lines
@@ -136,7 +136,7 @@ cCodeCurInit
         sta cCodeCurrLSB        ; defined in memoryMap.asm
         lda cCodeStartMSB       ; set up cCodeCurr pointer MSB
         sta cCodeCurrMSB        ; defined in memoryMap.asm
-        lda #$02                ; max # C=Code lines (count down)
+        lda #$01                ; max # C=Code lines (count down)
         sta cCodeLinesLSB
         lda #$00
         sta cCodeLinesMSB       ;

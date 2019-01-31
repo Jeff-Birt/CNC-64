@@ -36,6 +36,10 @@ start   ; the following line is at $0818
         lda #$01                ; make sure the pulse engine running
         sta CIA2_TOD_CRB        ; *** crappy way to do this, replace!
 
+        lda #$FF                ;
+        sta VelFrac             ; Default settings for velocity
+        sta VelInc              ;
+
         lda #$00                ; *** testing
         sta $B0                 ; *** count of writes to output buffer
         sta $B1                 ; *** testing
@@ -116,13 +120,11 @@ loopy   ; first load #steps ( must do again each rep)
         sta xIndex
 
         ldy yIndex              ; (4) use Y as loop index
-        ;cpy #$00                ; compare before dec to loop goes n through 0
         beq doneXY              ; (3) branch if done with this line
         dey                     ; (2) dec the index
         sty yIndex              ; (4) and store
 
 loopx   ldx xIndex              ; (4) use X as loop index
-        ;cpx #$00                ; (4) compare before dec to loop goes n thru 0
         beq doneX               ; (3) branch if done with this line
         dex                     ; (2) dec the index
         stx xIndex              ; (4) and store (3 for zero page)
@@ -131,34 +133,38 @@ loopx   ldx xIndex              ; (4) use X as loop index
         bmi @skipB              ; (3) skip if fraction < 0, else do ystep
         
         ; Toggle YStep
-;        lda outByte             ; (4) outByte^=0x04, toggle yStep for each step
-;        eor bStepBit            ; (4) XOR in ysstep bit (toggle it)
-;        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
-;        sta outByte             ; (4) save it 
-;        LIBMATH_SUB16_AAAAAA frL, frM, daL, daM, frL, frM
-;        LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
-;        jmp retry
-
-;@skipB  LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
-;xsteps  lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
-;        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
-;        sta outByte             ; (4) save it
-
-        ; Toggle YStep
+        LIBMATH_SUB16_AAAAAA frL, frM, daL, daM, frL, frM
+        LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
         lda outByte             ; (4) outByte^=0x04, toggle yStep for each step
         eor bStepBit            ; (4) XOR in ysstep bit (toggle it)
+        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
         sta outByte             ; (4) save it 
-        LIBMATH_SUB16_AAAAAA frL, frM, daL, daM, frL, frM
-@skipB  LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
+        jmp wdone               ; (3)
 
-        ; Toggle XStep
+@skipB  LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
 xsteps  lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
         eor aStepBit            ; (4) XOR in xstep bit (toggle it)
         sta outByte             ; (4) save it
 
-wdone   OutBufWrite             ; implicant wdone beq if buffer full (in macro)
-                                ; saves 5 cycles
-       ;beq retry               ; (3) if X/Z=0 then buffer full, try again
+;        ; Toggle YStep
+;        lda outByte             ; (4) outByte^=0x04, toggle yStep for each step
+;        eor bStepBit            ; (4) XOR in ysstep bit (toggle it)
+;        sta outByte             ; (4) save it 
+;        LIBMATH_SUB16_AAAAAA frL, frM, daL, daM, frL, frM
+;@skipB  LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
+
+;        ; Toggle XStep
+;xsteps  lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
+;        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
+;        sta outByte             ; (4) save it
+
+wdone   OutBufWrite             ; (24) implic. 'wdone beq' if buff full in macro
+
+        clc                     ; (2) clear carry before adding
+        lda VelFrac             ; (3) VelFrac += VelInc
+        adc VelInc              ; (3) if no overlfow, add a 'pause'
+        sta VelFrac             ; (3) store updated value           
+        bcc wdone               ; (3) else keep going, calc next outbyte
         
         LIBMATH_INC16_AA $BF, $C0 ; *** testing, inc buffer write count         
         
@@ -170,7 +176,7 @@ doneXY  jsr cCodeCurInc         ; increment line pointer, A=0 at last line
         jmp nxtLine             ; (3)
 
 end    
-        rts             ; done
+        rts                     ; done
 
 
 ;*******************************************************************************
