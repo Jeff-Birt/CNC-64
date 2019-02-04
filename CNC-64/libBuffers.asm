@@ -100,7 +100,7 @@ dir     = $09
 mod     = $0A
                 ;   Mode 1 (X master) Astepbit = $01, Bstepbit = $04 (A=X, B-Y) 
                 ;   Mode 2 (Y master) Bstepbit = $01, Astepbit = $04 (A=Y, B=X)
-                ;   #rep#step, daLSBMSB, dbLSBMSB, frLSBMSB, acl, dir, mod
+                ;   #rep#step, daLSBMSB, dbLSBMSB, frLSBMSB, vel, dir, mod
 cCodeBuf        byte $01, $FF, $FE, $01, $80, $00, $81, $FF, $00, $00, $01 ;(0,0)->(255,64)      $C209
                 byte $10, $FF, $FE, $01, $80, $00, $81, $FF, $00, $02, $01 ;(255,64)->(510,128)  $C212
                 byte $01, $FF, $04, $00, $00, $00, $FE, $FF, $00, $00, $00 ;(510,128)->(512,128) $C21B

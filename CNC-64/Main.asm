@@ -36,8 +36,9 @@ start   ; the following line is at $0818
         lda #$01                ; make sure the pulse engine running
         sta CIA2_TOD_CRB        ; *** crappy way to do this, replace!
 
-        lda #$FF                ;
+        lda #$FE                ;
         sta VelFrac             ; Default settings for velocity
+        lda #$7F                ;
         sta VelInc              ;
 
         lda #$00                ; *** testing
@@ -120,7 +121,9 @@ loopy   ; first load #steps ( must do again each rep)
         sta xIndex
 
         ldy yIndex              ; (4) use Y as loop index
-        beq doneXY              ; (3) branch if done with this line
+        bne doLoop              ; (3) if !=0 then keep looping              
+        jmp doneXY              ; (3) jump to end if done with this line
+doLoop 
         dey                     ; (2) dec the index
         sty yIndex              ; (4) and store
 
@@ -137,13 +140,12 @@ loopx   ldx xIndex              ; (4) use X as loop index
         LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
         lda outByte             ; (4) outByte^=0x04, toggle yStep for each step
         eor bStepBit            ; (4) XOR in ysstep bit (toggle it)
-        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
-        sta outByte             ; (4) save it 
-        jmp wdone               ; (3)
+        jmp xsteps              ; (3)
 
 @skipB  LIBMATH_ADD16_AAAAAA frL, frM, dbL, dbM, frL, frM
-xsteps  lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
-        eor aStepBit            ; (4) XOR in xstep bit (toggle it)
+        lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
+       
+xsteps  eor aStepBit            ; (4) XOR in xstep bit (toggle it)
         sta outByte             ; (4) save it
 
 ;        ; Toggle YStep
@@ -159,17 +161,29 @@ xsteps  lda outByte             ; (4) outByte ^= 01, toggle xStep for each step
 ;        sta outByte             ; (4) save it
 
 wdone   OutBufWrite             ; (24) implic. 'wdone beq' if buff full in macro
+        LIBMATH_INC16_AA $BF, $C0 ; *** testing, inc buffer write count 
 
-        clc                     ; (2) clear carry before adding
+        ; AcclInc is two's compliment'
+;        lda VelInc              ; (3) get current vel
+;        cmp VelReq              ; (3) at correct velocity now?
+;        beq velSet              ; (3) is equal so skip accel/decel
+;        clc                     ; (2) clear carry before adding
+;        lda AcclFrac            ; (3) VelFrac += VelInc
+;        adc AcclInc             ; (3) if no overlfow, add a 'pause'
+;        sta AcclFrac            ; (3) store updated value           
+;        bcc velSet              ; (3) carry clear, no velocity update
+;        inc VelInc              ; (5) incremetn current velocity setting
+
+        ; velocity 'pause' insertion
+velSet  clc                     ; (2) clear carry before adding
         lda VelFrac             ; (3) VelFrac += VelInc
         adc VelInc              ; (3) if no overlfow, add a 'pause'
         sta VelFrac             ; (3) store updated value           
-        bcc wdone               ; (3) else keep going, calc next outbyte
+        bcs loopx               ; (3) carry set so calc next outbyte
+        lda outByte             ; (4) else, load current outbyte
+        jmp wdone               ; (3) and insert as a 'pause'
         
-        LIBMATH_INC16_AA $BF, $C0 ; *** testing, inc buffer write count         
-        
-        jmp loopx
-doneX   jmp loopy
+doneX   jmp loopy               ; (3)
 
 doneXY  jsr cCodeCurInc         ; increment line pointer, A=0 at last line
         beq end                 ; (3) if A=0 returned then at last line
